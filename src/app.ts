@@ -25,15 +25,16 @@ process.on("unhandledRejection", (reason, p) => {
 const initDatabase = async () => {
   const entities = Object.values(Entities);
   const migrations = Object.values(Migrations);
+  console.log("Connecting to database");
 
   await createConnection({
-    database: "path to db",
+    url: Config.db.uri,
     entities,
     logging: process.env.NODE_ENV === "production" ? ["error", "warn"] : "all",
     maxQueryExecutionTime: 1000,
     migrations,
     synchronize: process.env.NODE_ENV === "production" ? false : true,
-    type: "postgres",
+    type: "mongodb",
   }).then(() => {
     return true;
   });
@@ -62,7 +63,7 @@ const getRouterConfigs = (): RoutingControllersOptions => {
 };
 
 const start = async () => {
-  //await initDatabase();
+  await initDatabase();
 
   const app = createExpressServer(getRouterConfigs());
   app.use(bodyParser.json());
