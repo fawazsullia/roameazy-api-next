@@ -1,5 +1,5 @@
 import { IsEnum, IsString } from "class-validator";
-import { SuperAdminRole } from "src/enums";
+import { SuperAdminRole } from "../../enums";
 
 export class CreateSuperAdminRequest {
     @IsString()

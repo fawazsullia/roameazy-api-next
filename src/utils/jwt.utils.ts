@@ -1,4 +1,4 @@
-import baseConfig from "src/configs/base.config";
+import { BaseConfig, Config } from "../config/base.config";
 
 const jwt = require('jsonwebtoken');
 
@@ -7,7 +7,7 @@ export const jwtutils = {
         return new Promise((res, rej) => {
             jwt.verify(
                 token,
-                baseConfig().JWT_SECRET,
+                Config.JWT_SECRET,
                 { algorithm: 'HS256' },
                 (err: any, decoded: { [key: string]: any }) => {
                     if (err) {
@@ -23,8 +23,8 @@ export const jwtutils = {
         return new Promise((res, rej) => {
             jwt.sign(
                 payload,
-                baseConfig().JWT_SECRET,
-                { expiresIn: expiresIn ? expiresIn : baseConfig().JWT_EXPIRES_IN, algorithm: 'HS256' },
+                Config.JWT_SECRET,
+                { expiresIn: expiresIn ? expiresIn : Config.JWT_EXPIRES_IN, algorithm: 'HS256' },
                 (err: any, token: string) => {
                     if (err) {
                         console.log('error in signing jwt', err);

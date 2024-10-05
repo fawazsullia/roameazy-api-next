@@ -32,7 +32,7 @@ export class UploadUtils {
         console.log(filePath, "file path")
         const uplaodedFile = await this.bucket.upload(filePath, options);
         console.log(uplaodedFile, "uploaded file")
-        return uplaodedFile[0] ? uplaodedFile[0].metadata.id : ""
+        return uplaodedFile[0]?.metadata?.id ?? "";
     }
 
     public static getFileFromBucket(id: string) {

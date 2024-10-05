@@ -1,6 +1,5 @@
 import { IsOptional, IsString } from "class-validator";
-import { SuperAdminUser } from "src/schemas/super-admin-user.schema";
-import { User } from "src/schemas/user.schema";
+import { SuperAdminUser, User } from "../../orm/entities";
 
 export class UserGeneticResponse {
 
@@ -9,7 +8,7 @@ export class UserGeneticResponse {
 
     @IsString()
     email: string;
-    
+
     @IsString()
     role: string;
 

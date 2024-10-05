@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import "reflect-metadata";
 import Express from "express";
-import { createConnection, useContainer as ormContainer } from "typeorm";
+import { createConnection, useContainer as useOrmContainer } from "typeorm";
 import {
   createExpressServer,
   RoutingControllersOptions,
@@ -26,7 +26,7 @@ const initDatabase = async () => {
   const entities = Object.values(Entities);
   const migrations = Object.values(Migrations);
   console.log("Connecting to database");
-
+  useOrmContainer(Container);
   await createConnection({
     url: Config.db.uri,
     entities,
