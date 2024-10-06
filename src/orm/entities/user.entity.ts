@@ -1,15 +1,17 @@
 import { ObjectId } from "mongodb";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, ObjectIdColumn } from "typeorm";
+import { UserType } from "../../enums";
 
-@Entity()
+@Entity('users')
 export class User {
 
-    @PrimaryGeneratedColumn()
+    @ObjectIdColumn()
     _id: ObjectId;
 
     @Column()
     name: string;
 
+    @Index({ unique: true })
     @Column()
     email: string;
 
@@ -17,7 +19,7 @@ export class User {
     password?: string;
 
     @Column()
-    role: string;
+    role: UserType;
 
     @Column({ default: Date.now })
     createdAt: Date;

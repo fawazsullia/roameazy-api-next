@@ -2,9 +2,11 @@ import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 
 import { v4 as uuidV4 } from "uuid"
-import { Listing } from "../orm/entities";
+import { Company, Listing, User } from "../orm/entities";
 import { MongoRepository, ObjectLiteral } from "typeorm";
 import { CreateListingRequest, GetListingRequest } from "../models";
+import { StringUtil } from "../utils/string.util";
+import { UploadUtils } from "../utils/upload.util";
 
 @Service()
 export class ListingService {
@@ -12,9 +14,13 @@ export class ListingService {
   @InjectRepository(Listing)
   private listingModel: MongoRepository<Listing>;
 
-  async create(params: CreateListingRequest, files: Express.Multer.File[]) {
-    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle } = params;
+  @InjectRepository(Company)
+  private companyModel: MongoRepository<Company>;
 
+  async create(params: CreateListingRequest, files: Express.Multer.File[], user: User) {
+    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle } = params;
+    const company = await this.companyModel.findOne({ where: { _id: user.companyId } });
+    if (!company) throw new Error('Company not found');
     // create the listing here
     const existingListing = await this.listingModel.findOne({ where: { title } });
     if (existingListing) {
@@ -25,14 +31,14 @@ export class ListingService {
     newListing.from = from;
     newListing.to = to;
     newListing.includedPlaces = includedPlaces;
-    newListing.numberOfNights = numberOfNights;
+    newListing.numberOfNights = Number(numberOfNights);
     newListing.mealsIncluded = mealsIncluded;
-    newListing.travelInsurance = travelInsurance;
+    newListing.travelInsurance = travelInsurance === 'true';
     newListing.startDate = new Date(startDate);
     newListing.endDate = new Date(endDate);
     newListing.listingId = uuidV4();
     if (visa) {
-      newListing.visa = visa;
+      newListing.visa = visa === 'true';
     }
     if (hotels) {
       newListing.hotels = hotels;
@@ -46,26 +52,27 @@ export class ListingService {
     }
     newListing.createdAt = new Date();
     newListing.updatedAt = new Date();
-    newListing.basePrice = basePrice;
+    newListing.basePrice = Number(basePrice);
     if (basePriceSingle) {
-      newListing.basePriceSingle = basePriceSingle;
+      newListing.basePriceSingle = Number(basePriceSingle);
     }
     if (variablePrices) {
       newListing.variablePrices = variablePrices;
     }
     if (airTickets) {
-      newListing.airTickets = airTickets;
+      newListing.airTickets = airTickets === 'true';
     }
     if (tourGuide) {
-      newListing.tourGuide = tourGuide;
+      newListing.tourGuide = tourGuide === 'true';
     }
     if (files && files.length > 0) {
-      // const fileIds = await Promise.all(files.map(async file => {
-      //   const fileName = StringUtil.getUploadFileName(file.originalname, companyName);
-      //   return UploadUtils.uploadFileToBucket(file, 'package-images', "")
-      // }))
+      const fileIds = await Promise.all(files.map(async file => {
+        const fileName = StringUtil.getUploadFileName(file.originalname, company.name);
+        return UploadUtils.uploadFileToBucket(file, 'package-images', fileName)
+      }));
+      newListing.images = fileIds;
     }
-    await this.listingModel.create(newListing);
+    await this.listingModel.save(newListing);
   }
 
   async get(params: GetListingRequest) {
@@ -136,8 +143,8 @@ export class ListingService {
     const { listings, total } = await this.getFilteredAndSortedListings(
       limit,
       offset,
-      new Date(startDate),
-      new Date(endDate),
+      startDate,
+      endDate,
       from,
       to,
       listingType,
@@ -176,8 +183,8 @@ export class ListingService {
   async getFilteredAndSortedListings(
     limit: number,
     offset: number,
-    startDate: Date,
-    endDate: Date,
+    startDate?: string,
+    endDate?: string,
     from?: string,
     to?: string,
     listingType?: 'active' | 'inactive' | 'all',
@@ -190,10 +197,16 @@ export class ListingService {
     sortKey?: string,
     sortOrder?: number
   ) {
-    const matchStage: any = {
-      startDate: { $gte: new Date(startDate), $lte: new Date(endDate) },
-      endDate: { $gte: new Date(startDate), $lte: new Date(endDate) },
-    };
+    const matchStage: any = {};
+
+    if (startDate) {
+      matchStage.startDate = { $gte: new Date(startDate) };
+    } else {
+      matchStage.startDate = { $gte: new Date() };
+    }
+    if (endDate) {
+      matchStage.endDate = { $lte: new Date(endDate) };
+    }
 
     if (from) matchStage.from = { $regex: from, $options: 'i' };
     if (to) matchStage.to = { $regex: to, $options: 'i' };
@@ -275,22 +288,20 @@ export class ListingService {
     if (limit !== undefined && limit > 0) {
       pipeline.push({ $limit: limit });
     }
-    console.log(pipeline, "pipeline");
 
     // Execute the aggregation pipeline
-    const results = await this.listingModel.aggregate(pipeline);
+    const results = await this.listingModel.aggregate(pipeline).toArray();
 
-    console.log(results, "results");
 
     // Get total count (without pagination)
     const totalCount = await this.listingModel.aggregate([
       { $match: matchStage },
       { $count: 'total' }
-    ]);
-
+    ]).toArray();
+    console.log(totalCount, "totalCount");
     return {
       listings: results,
-      total: totalCount[0]?.total || 0
+      total: totalCount[0] || 0
     };
   }
 

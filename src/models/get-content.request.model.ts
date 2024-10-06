@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetContentRequest {
     
@@ -7,4 +7,12 @@ export class GetContentRequest {
 
     @IsString()
     group: string;
+
+    @IsNumber()
+    @IsOptional()
+    limit?: number;
+
+    @IsNumber()
+    @IsOptional()
+    offset?: number;
 }

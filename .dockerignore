@@ -154,3 +154,5 @@ docker-compose**
 **/TODOs.md
 **/data
 **/db
+
+/src/uploads

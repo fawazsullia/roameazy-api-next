@@ -1,17 +1,17 @@
 import { ObjectId } from "mongodb";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn } from "typeorm";
 
-@Entity()
+@Entity('companydetails')
 export class CompanyDetail {
 
-    @PrimaryGeneratedColumn()
+    @ObjectIdColumn()
     _id: ObjectId;
 
     @Column({ nullable: false })
     description: string;
 
     @Column({ nullable: true, type: String })
-    logo: string;
+    logo?: string;
 
     @Column({ nullable: false })
     address: string;
@@ -29,7 +29,7 @@ export class CompanyDetail {
     alternatePhone?: string;
 
     @Column({ nullable: true })
-    companyId: ObjectId;
+    companyId: string;
 
     @Column({ nullable: false })
     createdAt: Date;

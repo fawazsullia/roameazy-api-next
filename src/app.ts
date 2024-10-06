@@ -17,6 +17,9 @@ import * as controllers from "./controllers";
 import * as middlewares from "./middlewares";
 import { Config } from "./config/base.config";
 import * as bodyParser from "body-parser";
+import { CurrenUserChecker } from "./decorators/current-user-checker";
+import cookieParser from "cookie-parser";
+import { ResourceService } from "./services/resource.service";
 
 process.on("unhandledRejection", (reason, p) => {
   console.log("Unhandled rejection occuured", p, "reason:", reason);
@@ -47,7 +50,7 @@ const getRouterConfigs = (): RoutingControllersOptions => {
     controllers: controllersMap,
     cors: {
       allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
-      origin: ["*"],
+      origin: ["localhost:8080", "localhost:5173"],
     },
     defaults: {
       nullResultCode: 404,
@@ -58,6 +61,7 @@ const getRouterConfigs = (): RoutingControllersOptions => {
     },
     middlewares: middlewaresMap,
     routePrefix: "/api",
+    currentUserChecker: CurrenUserChecker
   };
   return routerConfigs;
 };
@@ -65,7 +69,17 @@ const getRouterConfigs = (): RoutingControllersOptions => {
 const start = async () => {
   await initDatabase();
 
-  const app = createExpressServer(getRouterConfigs());
+  const app = Express();
+  app.get("/api/resource", (req, res) => {
+    const resourceService = Container.get(ResourceService);
+    // get id from request query params
+    const id = req.query.id as string;
+    console.log('id', id);
+    return resourceService.get(id, res);
+  })
+
+  app.use(cookieParser());
+  useExpressServer(app, getRouterConfigs());
   app.use(bodyParser.json());
   app.use(Helmet());
   useContainer(Container);

@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber, IsObject, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsObject, IsOptional, IsString } from "class-validator";
 import { AirportTransfer, Meals } from "../enums";
 import { Itinerary, ListingHotel, VariablePrice } from "../types";
 
@@ -15,18 +15,18 @@ export class CreateListingRequest {
     @IsString({ each: true })
     includedPlaces: string[];
 
-    @IsNumber()
-    numberOfNights: number;
+    @IsString()
+    numberOfNights: string;
 
     @IsString({ each: true })
     mealsIncluded: Meals[];
 
-    @IsBoolean()
-    travelInsurance: boolean;
+    @IsString()
+    travelInsurance: string;
 
-    @IsBoolean()
+    @IsString()
     @IsOptional()
-    visa?: boolean;
+    visa?: string;
 
     @IsOptional()
     @IsObject({ each: true })
@@ -48,23 +48,23 @@ export class CreateListingRequest {
     @IsString()
     endDate: string;
 
-    @IsNumber()
-    basePrice: number;
+    @IsString()
+    basePrice: string;
 
     @IsObject({ each: true })
     @IsOptional()
     variablePrices?: VariablePrice[];
 
-    @IsBoolean()
+    @IsString()
     @IsOptional()
-    airTickets?: boolean;
+    airTickets?: string;
 
-    @IsBoolean()
+    @IsString()
     @IsOptional()
-    tourGuide?: boolean;
+    tourGuide?: string;
 
-    @IsNumber()
+    @IsString()
     @IsOptional()
-    basePriceSingle?: number;
+    basePriceSingle?: string;
 
 }

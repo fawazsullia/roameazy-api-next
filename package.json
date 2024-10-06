@@ -24,6 +24,7 @@
   "author": "Fawaz Sullia",
   "dependencies": {
     "@google-cloud/storage": "^7.13.0",
+    "@types/cookie-parser": "^1.4.7",
     "@types/multer": "^1.4.12",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",

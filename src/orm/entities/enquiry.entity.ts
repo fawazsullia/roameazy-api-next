@@ -2,7 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { ObjectId } from "mongodb";
 import { EnquirySource } from "../../enums";
 
-@Entity()
+@Entity('enquiries')
 export class Enquiry {
 
     @PrimaryGeneratedColumn()

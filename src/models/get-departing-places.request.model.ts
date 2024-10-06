@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetDepartingPlacesRequest {
 
@@ -15,4 +15,9 @@ export class GetDepartingPlacesRequest {
     @IsString()
     @IsOptional()
     country?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    topcountry?: boolean;
+
 }

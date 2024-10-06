@@ -1,7 +1,11 @@
-import { Body, Get, JsonController, Param, Post, UploadedFiles } from "routing-controllers";
+import { Body, CurrentUser, Get, JsonController, Param, Post, UploadedFiles, UseBefore } from "routing-controllers";
 import { Inject } from "typedi";
 import { ListingService } from "../services/listing.service";
 import { CreateListingRequest, GetListingRequest, SuccessReponse } from "../models";
+import { User } from "../orm/entities";
+import { AllowSpecifiedUserType } from "../utils/allow-specified-user-type.util";
+import { UserType } from "../enums";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
 
 @JsonController('/listing')
 export class ListingController {
@@ -10,11 +14,14 @@ export class ListingController {
     private listingService: ListingService;
 
     @Post()
+    @UseBefore(AuthMiddleware)
     async create(
         @Body() body: CreateListingRequest,
-        @UploadedFiles('files') files: Express.Multer.File[]
+        @UploadedFiles('files') files: Express.Multer.File[],
+        @CurrentUser() user: User
     ) {
-        await this.listingService.create(body, files);
+        AllowSpecifiedUserType.allowUserType(user.role, [UserType.ADMIN], true);
+        await this.listingService.create(body, files, user);
         return new SuccessReponse();
     }
 
@@ -26,7 +33,7 @@ export class ListingController {
         return this.listingService.get(body);
     }
 
-    @Get(':listingId')
+    @Get('/:listingId')
     async getListingById(
         @Param('listingId') listingId: string
     ) {

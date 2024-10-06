@@ -1,4 +1,4 @@
-import { SuperAdminRole, UserType } from "src/enums";
+import { SuperAdminRole, UserType } from "../enums";
 
 export type LoggedInUser = {
     _id: string;

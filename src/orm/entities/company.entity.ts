@@ -1,10 +1,10 @@
 import { ObjectId } from "mongodb";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn } from "typeorm";
 
-@Entity()
+@Entity('companies')
 export class Company {
 
-    @PrimaryGeneratedColumn()
+    @ObjectIdColumn()
     _id: ObjectId;
 
     @Column()

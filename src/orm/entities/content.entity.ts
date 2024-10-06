@@ -1,12 +1,12 @@
 // This will store stuff that is related to pages to be generated, for example, bali listings and the content related to it
 
 import { ObjectId } from "mongodb";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('contents')
 export class Content {
 
-    @PrimaryGeneratedColumn()
+    @ObjectIdColumn()
     _id: ObjectId;
 
     @Column()

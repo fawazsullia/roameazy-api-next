@@ -22,7 +22,7 @@ export class ContentService {
         content.data = data;
         content.createdAt = new Date();
         content.updatedAt = new Date();
-        return this.contentModel.create(content);
+        return this.contentModel.save(content);
     }
 
     // here, make provisions to only update single keys later

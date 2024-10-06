@@ -30,5 +30,9 @@ export class CreatePlaceRequest {
 
     @IsString()
     placeId: string;
+
+    @IsBoolean()
+    @IsOptional()
+    isTopCountry?: boolean;
     
 }

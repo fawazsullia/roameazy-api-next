@@ -17,17 +17,24 @@ export class PlaceController {
         return new SuccessReponse();
     }
 
-    @Post('get-departing')
+    @Post('/get-departing')
     async getDeparting(
         @Body() body: GetDepartingPlacesRequest
     ) {
         return this.placeService.getDeparting(body);
     }
 
-    @Post('get-destination')
+    @Post('/get-destination')
     async getDestination(
         @Body() body: GetDepartingPlacesRequest
     ) {
         return this.placeService.getDestinations(body);
+    }
+
+    @Post('/get-top-countries')
+    async getTopCountries(
+
+    ) {
+        return this.placeService.getTopCountries();
     }
 }

@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('superadminusers')
 export class SuperAdminUser {
 
     @PrimaryGeneratedColumn()

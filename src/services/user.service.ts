@@ -9,6 +9,8 @@ import { UploadUtils } from "../utils/upload.util";
 const bcrypt = require('bcrypt');
 import crypto from 'crypto';
 import { CreateSuperAdminRequest } from "../models/user/create-super-admin.request.model";
+import { UserType } from "../enums";
+import { ObjectId } from "mongodb";
 
 @Service()
 export class UserService {
@@ -30,7 +32,6 @@ export class UserService {
   // this is to create an admin user
   async create(params: OnboardUserRequest, license: Express.Multer.File) {
     const { name, email, companyName, companyEmail, companyAddress, companyPhone, companyDescription } = params;
-    console.log('params', license);
     const user = await this.userModel.findOne({ where: { email } });
 
     const existingCompany = await this.companyModel.findOne({ where: { name: companyEmail } });
@@ -45,7 +46,9 @@ export class UserService {
 
     var password = crypto.randomBytes(10).toString('hex');
 
-    console.log('password', password);
+    console.log('password===========================>', password);
+
+    // need to send password after user creation
 
     try {
       const fileName = StringUtil.getUploadFileName(license.originalname, companyName);
@@ -59,7 +62,8 @@ export class UserService {
       company.updatedAt = new Date();
       company.isVerified = true;
       company.plan = 'free';
-      const createdCompany = await this.companyModel.create(company);
+      const createdCompany = await this.companyModel.save(company);
+
 
       const companyDetail = new CompanyDetail();
       companyDetail.address = companyAddress;
@@ -67,19 +71,19 @@ export class UserService {
       companyDetail.phone = companyPhone;
       companyDetail.createdAt = new Date();
       companyDetail.updatedAt = new Date();
-      companyDetail.companyId = createdCompany._id;
+      companyDetail.companyId = createdCompany._id.toString();
       companyDetail.tradeLicense = uploadedUrl;
       companyDetail.description = companyDescription;
-      await this.companyDetailModel.create(companyDetail);
+      await this.companyDetailModel.save(companyDetail);
 
       newuser.companyId = createdCompany._id;
       newuser.name = name;
       newuser.email = email;
       newuser.password = hashedPassword;
-      newuser.role = 'admin';
+      newuser.role = UserType.ADMIN;
       newuser.createdAt = new Date();
       newuser.updatedAt = new Date();
-      await this.userModel.create(newuser);
+      await this.userModel.save(newuser);
     } catch (error) {
       throw error;
     } finally {
@@ -103,7 +107,7 @@ export class UserService {
     superAdminUser.role = role;
     superAdminUser.createdAt = new Date();
     superAdminUser.updatedAt = new Date();
-    await this.superAdminUserModel.create(superAdminUser);
+    await this.superAdminUserModel.save(superAdminUser);
   }
 
   async login(params: LoginRequest): Promise<any> {
@@ -134,6 +138,29 @@ export class UserService {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new Error('Invalid credentials');
+    }
+    return user;
+  }
+
+  public async getUserById(id: string, isSuperAdmin?: boolean): Promise<User | SuperAdminUser> {
+    if (isSuperAdmin) {
+      const superAdminUser = await this.superAdminUserModel.findOne({
+        where: {
+          _id: new ObjectId(id)
+        }
+      });
+      if (!superAdminUser) {
+        throw new Error('User not found');
+      }
+      return superAdminUser;
+    }
+    const user = await this.userModel.findOne({
+      where: {
+        _id: new ObjectId(id)
+      }
+    });
+    if (!user) {
+      throw new Error('User not found');
     }
     return user;
   }

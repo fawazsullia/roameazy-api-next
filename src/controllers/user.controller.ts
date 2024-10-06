@@ -42,7 +42,8 @@ export class UserController {
       name: user.name,
       role: user.role
     }
-    const token = jwtutils.sign(loggedInUser);
+    const token = await jwtutils.sign(loggedInUser);
+    console.log('token===================>', token);
     res.cookie('token', token, { httpOnly: true });
     return new UserGeneticResponse(user);
   }

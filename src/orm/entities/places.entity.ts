@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity('places')
 export class Place {
 
     @PrimaryGeneratedColumn()
@@ -10,9 +10,11 @@ export class Place {
     @Column({ nullable: false, unique: true })
     placeId: string;
 
-    @Index({ unique: true })
     @Column()
     name: string;
+
+    @Column({ default: false })
+    isTopCountry?: boolean;
 
     @Column()
     country: string;

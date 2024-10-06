@@ -22,10 +22,12 @@ export class GetListingRequest {
     listingType?: 'active' | 'inactive' | 'all'; 
 
     @IsString()
-    startDate: string;
+    @IsOptional()
+    startDate?: string;
 
     @IsString()
-    endDate: string;
+    @IsOptional()
+    endDate?: string;
 
     @IsBoolean()
     @IsOptional()

@@ -1,12 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ObjectIdColumn } from "typeorm";
 import { AirportTransfer, Meals } from "../../enums";
 import { Itinerary, ListingHotel, VariablePrice } from "../../types";
 import { ObjectId } from "mongodb";
 
-@Entity()
+@Entity('listings')
 export class Listing {
 
-    @PrimaryGeneratedColumn()
+    @ObjectIdColumn()
     _id: ObjectId;
 
     @Column()
@@ -99,4 +99,7 @@ export class Listing {
 
     @Column({ nullable: false })
     companyId: string;
+
+    @Column({ default: [] })
+    images: string[];
 }
