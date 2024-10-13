@@ -67,4 +67,8 @@ export class CreateListingRequest {
     @IsOptional()
     basePriceSingle?: string;
 
+    @IsString()
+    @IsOptional()
+    overView?: string;
+
 }

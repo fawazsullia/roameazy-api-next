@@ -102,4 +102,7 @@ export class Listing {
 
     @Column({ default: [] })
     images: string[];
+
+    @Column({ nullable: true })
+    overview?: string;
 }

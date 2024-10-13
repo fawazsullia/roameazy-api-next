@@ -33,8 +33,8 @@ export class ListingController {
         return this.listingService.get(body);
     }
 
-    @Get('/:listingId')
-    async getListingById(
+    @Get('/get-package/:listingId')
+    public async getListingById(
         @Param('listingId') listingId: string
     ) {
         return this.listingService.getListingById(listingId);

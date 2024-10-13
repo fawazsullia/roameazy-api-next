@@ -39,4 +39,7 @@ export class CompanyDetail {
 
     @Column({ nullable: false })
     updatedAt: Date;
+
+    @Column({ nullable: true })
+    termsAndConditions?: string[];
 }
