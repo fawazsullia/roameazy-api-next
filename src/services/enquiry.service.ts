@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Service } from "typedi";
 
-@Injectable()
+@Service()
 export class EnquiryService {
 
     public async createEnquiry() {
