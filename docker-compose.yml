@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  api:
+    image: fawazsullialabs/roam-eazy-api:0.0.1
+    ports:
+      - "9005:9005"
+    env_file:
+      - .prod.env
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+      - frontend

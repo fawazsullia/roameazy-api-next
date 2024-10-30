@@ -102,7 +102,8 @@ export class PlaceService {
 
     public async getTopCountries() {
         const query = {
-            isTopCountry: true
+            isTopCountry: true,
+            type: 'country'
         };
         const places = await this.placeModel.find({
             where: query
@@ -140,5 +141,9 @@ export class PlaceService {
             })
         });
         return placesWithCount;
+    }
+
+    async getPlace(placeId: string) {
+        return this.placeModel.findOne({ where: { placeId } });
     }
 }

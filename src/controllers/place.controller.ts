@@ -37,4 +37,11 @@ export class PlaceController {
     ) {
         return this.placeService.getTopCountries();
     }
+
+    @Post('/get-place')
+    async getPlace(
+        @Body() body: { placeId: string }
+    ) {
+        return this.placeService.getPlace(body.placeId);
+    }
 }
