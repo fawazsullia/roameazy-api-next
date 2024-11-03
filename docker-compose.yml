@@ -2,11 +2,13 @@ version: '3.8'
 
 services:
   api:
-    image: fawazsullialabs/roam-eazy-api:0.0.1
+    image: fawazsullialabs/roam-eazy-api:0.0.2
     ports:
       - "9005:9005"
     env_file:
       - .prod.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   nginx:
     image: nginx:latest
@@ -17,3 +19,14 @@ services:
     depends_on:
       - api
       - frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    image: fawazsullialabs/roam-eazy-ui:0.0.1
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
