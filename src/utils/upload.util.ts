@@ -37,7 +37,6 @@ export class UploadUtils {
         idSplit.pop()
         const path = idSplit.slice(1).join('/');
         const file = this.bucket.file(path);
-        console.log(file, "file")
         return file.createReadStream();
     }
 

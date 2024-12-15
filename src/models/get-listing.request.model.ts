@@ -60,4 +60,8 @@ export class GetListingRequest {
     @IsNumber()
     @IsOptional()
     sortOrder?: number;
+
+    @IsBoolean()
+    @IsOptional()
+    isTopPackage?: boolean;
 }

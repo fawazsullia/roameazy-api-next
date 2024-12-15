@@ -38,6 +38,7 @@ export class ContentService {
     }
 
     public async get(params: GetContentRequest) {
+        
         const { key, group } = params;
         const response = await this.contentModel.findOne({ where: { key, group } });
         if (!response) {

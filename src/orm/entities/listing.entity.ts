@@ -105,4 +105,7 @@ export class Listing {
 
     @Column({ nullable: true })
     overview?: string;
+
+    @Column({ default: false })
+    isTopPackage: boolean;
 }

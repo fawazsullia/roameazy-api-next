@@ -80,7 +80,7 @@ export class ListingService {
 
   async get(params: GetListingRequest) {
 
-    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder } = params;
+    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage } = params;
 
     // const query: FilterQuery<Listing> = {
     //   // start date should be between the start and end date
@@ -158,7 +158,8 @@ export class ListingService {
       maxNights,
       minNights,
       sortKey,
-      sortOrder
+      sortOrder,
+      isTopPackage
     )
     return {
       listings,
@@ -198,7 +199,8 @@ export class ListingService {
     maxNights?: number,
     minNights?: number,
     sortKey?: string,
-    sortOrder?: number
+    sortOrder?: number,
+    isTopPackage?: boolean
   ) {
     const matchStage: any = {};
 
@@ -210,6 +212,8 @@ export class ListingService {
     if (endDate) {
       matchStage.endDate = { $lte: new Date(endDate) };
     }
+
+    if (isTopPackage !== undefined) matchStage.isTopPackage = isTopPackage;
 
     if (from) matchStage.from = { $regex: from, $options: 'i' };
     if (to) matchStage.to = { $regex: to, $options: 'i' };
@@ -295,7 +299,6 @@ export class ListingService {
     // Execute the aggregation pipeline
     const results = await this.listingModel.aggregate(pipeline).toArray();
 
-
     // Get total count (without pagination)
     const totalCount = await this.listingModel.aggregate([
       { $match: matchStage },
@@ -309,7 +312,6 @@ export class ListingService {
   }
 
   public async getListingById(listingId) {
-    console.log(listingId, "listingId>>>>>>>>>>>>>>>>>>");
     return this.listingModel.findOne({
       where: {
         listingId
