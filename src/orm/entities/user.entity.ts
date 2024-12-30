@@ -24,6 +24,9 @@ export class User {
     @Column({ default: Date.now })
     createdAt: Date;
 
+    @Column({ default: true })
+    isActive: boolean;
+
     @Column({ default: Date.now })
     updatedAt: Date;
 

@@ -1,8 +1,8 @@
-import { SuperAdminRole, UserType } from "../enums";
+import { UserType } from "../enums";
 
 export class AllowSpecifiedUserType {
 
-    public static allowUserType(userType: (UserType | SuperAdminRole), allowedUserTypes: (UserType | SuperAdminRole)[], shouldThrow?: boolean): boolean {
+    public static allowUserType(userType: UserType, allowedUserTypes: UserType[], shouldThrow?: boolean): boolean {
         const userAllowed = allowedUserTypes.includes(userType);
 
         if (shouldThrow && !userAllowed) {

@@ -18,6 +18,9 @@ export class Company {
     })
     plan: string;
 
+    @Column({ default: false })
+    isRoamEazy: boolean;
+
     @Column()
     createdAt: Date;
 

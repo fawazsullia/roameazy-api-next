@@ -8,8 +8,4 @@ export class LoginRequest {
     @IsString()
     password: string;
 
-    @IsBoolean()
-    @IsOptional()
-    isSuperAdminLogin: boolean;
-
 }

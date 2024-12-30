@@ -64,4 +64,8 @@ export class GetListingRequest {
     @IsBoolean()
     @IsOptional()
     isTopPackage?: boolean;
+
+    @IsString()
+    @IsOptional()
+    company?: string;
 }

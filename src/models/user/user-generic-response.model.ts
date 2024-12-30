@@ -1,5 +1,5 @@
 import { IsOptional, IsString } from "class-validator";
-import { SuperAdminUser, User } from "../../orm/entities";
+import { User } from "../../orm/entities";
 
 export class UserGeneticResponse {
 
@@ -22,7 +22,7 @@ export class UserGeneticResponse {
     @IsOptional()
     companyId: string;
 
-    constructor(user: SuperAdminUser & User) {
+    constructor(user: User) {
         this.name = user.name;
         this.email = user.email;
         this.role = user.role;

@@ -1,6 +1,6 @@
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
-import { Company, CompanyDetail, SuperAdminUser, User } from "../orm/entities";
+import { Company, CompanyDetail, User } from "../orm/entities";
 import { getConnection, MongoRepository } from "typeorm";
 import { LoginRequest, OnboardUserRequest } from "../models";
 import { StringUtil } from "../utils/string.util";
@@ -24,11 +24,6 @@ export class UserService {
   @InjectRepository(CompanyDetail)
   private companyDetailModel: MongoRepository<CompanyDetail>;
 
-  @InjectRepository(SuperAdminUser)
-  private readonly superAdminUserModel: MongoRepository<SuperAdminUser>;
-
-
-
   // this is to create an admin user
   async create(params: OnboardUserRequest, license: Express.Multer.File) {
     const { name, email, companyName, companyEmail, companyAddress, companyPhone, companyDescription } = params;
@@ -45,8 +40,6 @@ export class UserService {
     }
 
     var password = crypto.randomBytes(10).toString('hex');
-
-    console.log('password===========================>', password);
 
     // need to send password after user creation
 
@@ -84,6 +77,7 @@ export class UserService {
       newuser.createdAt = new Date();
       newuser.updatedAt = new Date();
       await this.userModel.save(newuser);
+      return password;
     } catch (error) {
       throw error;
     } finally {
@@ -92,7 +86,7 @@ export class UserService {
 
   async createSuperAdmin(params: CreateSuperAdminRequest) {
     const { username, email, password, confirmPassword, role } = params;
-    const existing = await this.superAdminUserModel.findOne({ where: { $or: [{ username }, { email }] } });
+    const existing = await this.userModel.findOne({ where: { $or: [{ username }, { email }] } });
     if (existing) {
       throw new Error('User already exists');
     }
@@ -100,33 +94,27 @@ export class UserService {
       throw new Error('Password does not match');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const superAdminUser = new SuperAdminUser();
+    const company = await this.companyModel.findOne({
+      where: {
+        isRoamEazy: true
+      }
+    });
+    if (!company) {
+      throw new Error('RoamEazy company not found');
+    }
+    const superAdminUser = new User();
     superAdminUser.name = username;
     superAdminUser.email = email;
     superAdminUser.password = hashedPassword;
     superAdminUser.role = role;
+    superAdminUser.companyId = company._id;
     superAdminUser.createdAt = new Date();
     superAdminUser.updatedAt = new Date();
-    await this.superAdminUserModel.save(superAdminUser);
+    await this.userModel.save(superAdminUser);
   }
 
   async login(params: LoginRequest): Promise<any> {
-    const { email, password, isSuperAdminLogin } = params;
-    if (isSuperAdminLogin) {
-      const user = await this.superAdminUserModel.findOne({
-        where: {
-          email
-        }
-      });
-      if (!user) {
-        throw new Error('Invalid credentials');
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        throw new Error('Invalid credentials');
-      }
-      return user;
-    }
+    const { email, password } = params;
     const user = await this.userModel.findOne({
       where: {
         email
@@ -142,18 +130,7 @@ export class UserService {
     return user;
   }
 
-  public async getUserById(id: string, isSuperAdmin?: boolean): Promise<User | SuperAdminUser> {
-    if (isSuperAdmin) {
-      const superAdminUser = await this.superAdminUserModel.findOne({
-        where: {
-          _id: new ObjectId(id)
-        }
-      });
-      if (!superAdminUser) {
-        throw new Error('User not found');
-      }
-      return superAdminUser;
-    }
+  public async getUserById(id: string): Promise<User> {
     const user = await this.userModel.findOne({
       where: {
         _id: new ObjectId(id)
@@ -163,5 +140,29 @@ export class UserService {
       throw new Error('User not found');
     }
     return user;
+  }
+
+  public async verifyAuth(userId: string) {
+    const user = await this.userModel.findOne({
+      where: {
+        _id: new ObjectId(userId)
+      },
+    });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const company = await this.companyModel.findOne({
+      where: {
+        _id: new ObjectId(user.companyId)
+      }
+    });
+    if (!company) {
+      throw new Error('Company not found');
+    }
+    return {
+      ...user,
+      companyId: user.companyId.toString(),
+      company
+    }
   }
 }

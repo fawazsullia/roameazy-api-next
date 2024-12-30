@@ -108,4 +108,7 @@ export class Listing {
 
     @Column({ default: false })
     isTopPackage: boolean;
+
+    @Column({ nullable: true })
+    termsAndConditions?: string[];
 }

@@ -29,6 +29,7 @@ export class UploadUtils {
             },
         }
         const uplaodedFile = await this.bucket.upload(filePath, options);
+        fs.unlink(filePath).catch((err) => console.log(err));
         return uplaodedFile[0]?.metadata?.id ?? "";
     }
 

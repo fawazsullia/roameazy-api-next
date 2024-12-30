@@ -6,14 +6,12 @@ import { jwtutils } from "../utils/jwt.utils";
 import Container from "typedi";
 import { UserService } from "../services";
 import { LoggedInUser } from "../types/logged-in-user.type";
-import { SuperAdminRole } from "../enums";
 
 // use class based middleware that routing controllers support
 @Middleware({ type: 'before' })
 export class AuthMiddleware implements ExpressMiddlewareInterface {
     async use(request: Request, response: Response, next: NextFunction) {
         let token = request.cookies?.token;
-        console.log('token===================>', token);
         if (!token) {
             token = request.headers['authorization'];
             token = token?.split(' ')[1];
@@ -24,11 +22,9 @@ export class AuthMiddleware implements ExpressMiddlewareInterface {
 
         try {
             const decoded: LoggedInUser = await jwtutils.verify(token);
-            console.log('decoded===================>', decoded);
             const userService = Container.get(UserService);
 
-            const user = await userService.getUserById(decoded._id, (decoded.role === SuperAdminRole.CORE || decoded.role === SuperAdminRole.STAFF));
-            console.log('user===================>' + user);
+            const user = await userService.getUserById(decoded._id);
             if (!user) {
                 return response.status(401).json({ message: 'Unauthorized' });
             }

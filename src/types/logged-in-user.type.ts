@@ -1,7 +1,7 @@
-import { SuperAdminRole, UserType } from "../enums";
+import { UserType } from "../enums";
 
 export type LoggedInUser = {
     _id: string;
-    role: SuperAdminRole & UserType;
+    role: UserType;
     name: string;
 }

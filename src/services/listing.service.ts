@@ -53,6 +53,7 @@ export class ListingService {
     newListing.createdAt = new Date();
     newListing.updatedAt = new Date();
     newListing.basePrice = Number(basePrice);
+    newListing.companyId = company._id.toString();
     if (basePriceSingle) {
       newListing.basePriceSingle = Number(basePriceSingle);
     }
@@ -65,7 +66,7 @@ export class ListingService {
     if (tourGuide) {
       newListing.tourGuide = tourGuide === 'true';
     }
-    if(overView) {
+    if (overView) {
       newListing.overview = overView;
     }
     if (files && files.length > 0) {
@@ -80,7 +81,7 @@ export class ListingService {
 
   async get(params: GetListingRequest) {
 
-    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage } = params;
+    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage, company } = params;
 
     // const query: FilterQuery<Listing> = {
     //   // start date should be between the start and end date
@@ -159,7 +160,8 @@ export class ListingService {
       minNights,
       sortKey,
       sortOrder,
-      isTopPackage
+      isTopPackage,
+      company
     )
     return {
       listings,
@@ -200,23 +202,59 @@ export class ListingService {
     minNights?: number,
     sortKey?: string,
     sortOrder?: number,
-    isTopPackage?: boolean
+    isTopPackage?: boolean,
+    company?: string
   ) {
     const matchStage: any = {};
 
-    if (startDate) {
-      matchStage.startDate = { $gte: new Date(startDate) };
-    } else {
-      matchStage.startDate = { $gte: new Date() };
+    const addBufferToDate = (date, bufferDays) => {
+      const newDate = new Date(date);
+      newDate.setDate(newDate.getDate() + bufferDays);
+      return newDate;
+    };
+
+    if (startDate && !endDate) {
+      const queryStartDate = new Date(startDate);
+      const bufferedStartDate = addBufferToDate(queryStartDate, -5);  // Buffer of -5 days for startDate
+      matchStage.startDate = { $gte: bufferedStartDate }; // Apply buffered start date
     }
-    if (endDate) {
-      matchStage.endDate = { $lte: new Date(endDate) };
+
+    if(company) {
+      matchStage.companyId = company;
     }
+
+    if (endDate && !startDate) {
+      const queryEndDate = new Date(endDate);
+      const bufferedEndDate = addBufferToDate(queryEndDate, 5);  // Buffer of +5 days for endDate
+      // Also, consider the buffered end date in case the query's endDate is later
+      matchStage.endDate = { $lte: bufferedEndDate }; // Apply buffered end date
+    }
+
+    if (startDate && endDate) {
+      matchStage.$or = [
+        {  // Case 1: The package dates are entirely within the query range
+          startDate: { $gte: new Date(startDate) },   // Package starts after or equal to query's start date
+          endDate: { $lte: new Date(endDate) }        // Package ends before or equal to query's end date
+        },
+        {  
+          startDate: { $lte: new Date(startDate) }, 
+          endDate: { $gte: new Date(endDate) }       
+        }
+      ];
+    }
+
+
 
     if (isTopPackage !== undefined) matchStage.isTopPackage = isTopPackage;
 
     if (from) matchStage.from = { $regex: from, $options: 'i' };
-    if (to) matchStage.to = { $regex: to, $options: 'i' };
+    if (to) {
+      matchStage.$or = [
+        { to: { $regex: to, $options: 'i' } },
+        { includedPlaces: { $elemMatch: { $regex: to, $options: 'i' } } }
+      ];
+    }
+
 
     if (listingType === 'active') matchStage.isActive = true;
     else if (listingType === 'inactive') matchStage.isActive = false;
@@ -235,7 +273,7 @@ export class ListingService {
       if (maxNights !== undefined) matchStage.numberOfNights.$lte = maxNights;
       if (minNights !== undefined) matchStage.numberOfNights.$gte = minNights;
     }
-    console.log(matchStage, "matchStage");
+
     const pipeline: ObjectLiteral[] = [
       { $match: matchStage },
     ];
@@ -307,7 +345,7 @@ export class ListingService {
     console.log(totalCount, "totalCount");
     return {
       listings: results,
-      total: totalCount[0] || 0
+      total: totalCount[0] ? totalCount[0]['total'] : 0
     };
   }
 
