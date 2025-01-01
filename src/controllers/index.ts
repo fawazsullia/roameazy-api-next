@@ -6,3 +6,4 @@ export * from './user.controller';
 export * from './listing.controller';
 export * from './form-submission.controller';
 export * from './company.controller';
+export * from './metrics.controller';

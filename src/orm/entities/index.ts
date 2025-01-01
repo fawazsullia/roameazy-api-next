@@ -6,3 +6,4 @@ export * from './enquiry.entity';
 export * from './listing.entity';
 export * from './places.entity';
 export * from './form-submission.entity';
+export * from './metrics.entity';
