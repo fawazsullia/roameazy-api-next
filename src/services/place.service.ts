@@ -74,7 +74,7 @@ export class PlaceService {
     }
 
     async getDestinations(params: GetDepartingPlacesRequest) {
-        const { limit, offset, searchTerm, country, topcountry } = params;
+        const { limit, offset, searchTerm, country, topcountry, type } = params;
 
         const query = {
             isDestination: true
@@ -91,6 +91,9 @@ export class PlaceService {
 
         if (topcountry) {
             query['isTopCountry'] = topcountry;
+        }
+        if(type) {
+            query['type'] = type;
         }
         const places = await this.placeModel.find({
             where: query,

@@ -20,4 +20,8 @@ export class GetDepartingPlacesRequest {
     @IsOptional()
     topcountry?: boolean;
 
+    @IsString()
+    @IsOptional()
+    type?: string;
+
 }

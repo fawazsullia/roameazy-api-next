@@ -30,7 +30,8 @@ export class UserController {
   async createSuperAdmin(
     @Body() body: CreateSuperAdminRequest
   ) {
-    return this.userService.createSuperAdmin(body);
+    await this.userService.createSuperAdmin(body);
+    return new SuccessReponse()
   }
 
   @Post('/login')

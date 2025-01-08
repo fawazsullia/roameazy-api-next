@@ -18,7 +18,7 @@ export class ListingService {
   private companyModel: MongoRepository<Company>;
 
   async create(params: CreateListingRequest, files: Express.Multer.File[], user: User) {
-    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle, overView } = params;
+    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle, overview, termsAndConditions } = params;
     const company = await this.companyModel.findOne({ where: { _id: user.companyId } });
     if (!company) throw new Error('Company not found');
     // create the listing here
@@ -32,7 +32,11 @@ export class ListingService {
     newListing.to = to;
     newListing.includedPlaces = includedPlaces;
     newListing.numberOfNights = Number(numberOfNights);
-    newListing.mealsIncluded = mealsIncluded;
+    if(mealsIncluded?.length) {
+      newListing.mealsIncluded = mealsIncluded;
+    } else {
+      newListing.mealsIncluded = [];
+    }
     newListing.travelInsurance = travelInsurance === 'true';
     newListing.startDate = new Date(startDate);
     newListing.endDate = new Date(endDate);
@@ -66,8 +70,11 @@ export class ListingService {
     if (tourGuide) {
       newListing.tourGuide = tourGuide === 'true';
     }
-    if (overView) {
-      newListing.overview = overView;
+    if (overview) {
+      newListing.overview = overview;
+    }
+    if(termsAndConditions?.length) {
+      newListing.termsAndConditions = termsAndConditions;
     }
     if (files && files.length > 0) {
       const fileIds = await Promise.all(files.map(async file => {
@@ -219,7 +226,7 @@ export class ListingService {
       matchStage.startDate = { $gte: bufferedStartDate }; // Apply buffered start date
     }
 
-    if(company) {
+    if (company) {
       matchStage.companyId = company;
     }
 
@@ -236,9 +243,9 @@ export class ListingService {
           startDate: { $gte: new Date(startDate) },   // Package starts after or equal to query's start date
           endDate: { $lte: new Date(endDate) }        // Package ends before or equal to query's end date
         },
-        {  
-          startDate: { $lte: new Date(startDate) }, 
-          endDate: { $gte: new Date(endDate) }       
+        {
+          startDate: { $lte: new Date(startDate) },
+          endDate: { $gte: new Date(endDate) }
         }
       ];
     }

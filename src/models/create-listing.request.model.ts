@@ -19,7 +19,8 @@ export class CreateListingRequest {
     numberOfNights: string;
 
     @IsString({ each: true })
-    mealsIncluded: Meals[];
+    @IsOptional()
+    mealsIncluded?: Meals[];
 
     @IsString()
     travelInsurance: string;
@@ -40,6 +41,7 @@ export class CreateListingRequest {
     itinerary: Itinerary[];
 
     @IsString({ each: true })
+    @IsOptional()
     tags?: string[];
 
     @IsString()
@@ -69,6 +71,10 @@ export class CreateListingRequest {
 
     @IsString()
     @IsOptional()
-    overView?: string;
+    overview?: string;
+
+    @IsString({ each: true })
+    @IsOptional()
+    termsAndConditions?: string[];
 
 }
