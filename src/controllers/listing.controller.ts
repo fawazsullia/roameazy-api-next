@@ -13,7 +13,7 @@ export class ListingController {
     @Inject()
     private listingService: ListingService;
 
-    @Post()
+    @Post('/')
     @UseBefore(AuthMiddleware)
     async create(
         @Body() body: CreateListingRequest,

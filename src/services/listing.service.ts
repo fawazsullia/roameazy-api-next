@@ -18,7 +18,10 @@ export class ListingService {
   private companyModel: MongoRepository<Company>;
 
   async create(params: CreateListingRequest, files: Express.Multer.File[], user: User) {
-    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle, overview, termsAndConditions } = params;
+    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, 
+      tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle, overview, termsAndConditions,
+      customExclusions, customInclusions  
+    } = params;
     const company = await this.companyModel.findOne({ where: { _id: user.companyId } });
     if (!company) throw new Error('Company not found');
     // create the listing here
@@ -75,6 +78,12 @@ export class ListingService {
     }
     if(termsAndConditions?.length) {
       newListing.termsAndConditions = termsAndConditions;
+    }
+    if(customExclusions?.length) {
+      newListing.customExclusions = customExclusions;
+    }
+    if(customInclusions?.length) {
+      newListing.customInclusions = customInclusions;
     }
     if (files && files.length > 0) {
       const fileIds = await Promise.all(files.map(async file => {

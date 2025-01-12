@@ -1,4 +1,4 @@
-import { Get, JsonController, Param } from "routing-controllers";
+import { Get, JsonController, Param, QueryParam } from "routing-controllers";
 import { Inject } from "typedi";
 import { CompanyService } from "../services/company.service";
 
@@ -14,5 +14,14 @@ export class CompanyController {
     @Param("id") id: string
   ) {
     return this.companyService.getCompanyById(id);
+  }
+
+  @Get("/")
+  public async getCompanies(
+    @QueryParam("limit", { required: false }) limit: number,
+    @QueryParam("offset", { required: false }) offset: number,
+    @QueryParam("getDetail", { required: false }) getDetail: boolean
+  ) {
+    return this.companyService.getCompanies(getDetail, limit, offset);
   }
 }

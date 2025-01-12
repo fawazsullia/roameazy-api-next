@@ -50,7 +50,7 @@ const getRouterConfigs = (): RoutingControllersOptions => {
     controllers: controllersMap,
     cors: {
       allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
-      origin: ["localhost:8080", "localhost:5173"],
+      origin: ["localhost:8080", "localhost:5173", "admin.roameazy.com", "roam-eazy-admin.netlify.app"],
     },
     defaults: {
       nullResultCode: 404,

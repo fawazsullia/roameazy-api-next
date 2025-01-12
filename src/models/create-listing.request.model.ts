@@ -77,4 +77,12 @@ export class CreateListingRequest {
     @IsOptional()
     termsAndConditions?: string[];
 
+    @IsString({ each: true })
+    @IsOptional()
+    customInclusions?: string[];
+
+    @IsString({ each: true })
+    @IsOptional()
+    customExclusions?: string[];
+
 }

@@ -17,4 +17,13 @@ export class FormSubmissionService {
         formSubmission.updatedAt = new Date();
         return this.formSubmissionModel.save(formSubmission);
     }
+
+    public async contactUs( name: string, message: string, email: string, contactNumber: string ) {
+        const formSubmission = new FormSubmission();
+        formSubmission.context = 'contact-us';
+        formSubmission.data = { name, message, email, contactNumber };
+        formSubmission.createdAt = new Date();
+        formSubmission.updatedAt = new Date();
+        return this.formSubmissionModel.save(formSubmission);
+    }
 }

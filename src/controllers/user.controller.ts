@@ -57,6 +57,15 @@ export class UserController {
   ) {
     const user = req.user;
     const userDetails = await this.userService.verifyAuth(user._id.toString());
+    console.log(userDetails, "//////////////////");
     return userDetails;
+  }
+
+  @Get('/logout')
+  async logout(
+    @Res() res: Response
+  ) {
+    res.clearCookie('token');
+    return new SuccessReponse();
   }
 }

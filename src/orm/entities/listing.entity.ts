@@ -111,4 +111,10 @@ export class Listing {
 
     @Column({ nullable: true })
     termsAndConditions?: string[];
+
+    @Column({ nullable: true })
+    customInclusions?: string[];
+
+    @Column({ nullable: true })
+    customExclusions?: string[];
 }

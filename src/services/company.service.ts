@@ -13,24 +13,62 @@ export class CompanyService {
     @InjectRepository(CompanyDetail)
     private companyDetailRepository: MongoRepository<CompanyDetail>;
 
-  public async getCompanyById(id: string) {
-    // fetch company by id
-    const company = await this.companyRepository.findOne({
-        where: {
-            _id: new ObjectId(id)
+    public async getCompanyById(id: string) {
+        // fetch company by id
+        const company = await this.companyRepository.findOne({
+            where: {
+                _id: new ObjectId(id)
+            }
+        });
+        if (!company) {
+            throw new Error('Company not found');
         }
-    });
-    if(!company) {
-        throw new Error('Company not found');
-    }
-    const companyDetails = await this.companyDetailRepository.findOne({
-        where: {
-            companyId: id
+        const companyDetails = await this.companyDetailRepository.findOne({
+            where: {
+                companyId: id
+            }
+        });
+        return {
+            ...company,
+            details: companyDetails
         }
-    });
-    return {
-        ...company,
-        details: companyDetails
     }
-  }
+
+    public async getCompanies(getDetail?: boolean, limit?: number, offset?: number) {
+        // fetch all companies
+        const query: any = {};
+        if (limit) {
+            query.take = limit;
+        }
+        if (offset) {
+            query.skip = offset;
+        }
+        const companies = await this.companyRepository.find(query);
+        if (!getDetail) {
+            return companies;
+        }
+        const totalCompanies = await this.companyRepository.count();
+        const companyIds = companies.map(company => company._id.toString());
+        const companyDetails = await this.companyDetailRepository.find({
+            where: {
+                companyId: {
+                    $in: companyIds
+                }
+            }
+        });
+        const companiesArr = companies.map(company => {
+            const details = companyDetails.find(detail => detail.companyId === company
+                ._id.toString());
+            return {
+
+                ...company,
+                details
+            }
+        }
+        );
+        return {
+            companies: companiesArr,
+            total: totalCompanies
+        }
+    }
 }

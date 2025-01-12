@@ -18,4 +18,14 @@ export class FormSubmissionController {
         console.log('email:', email);
         return this.formSubmissionService.joinUsAsTravelAgency(email, companyName, contactNumber, page);
     }
+
+    @Post('/contact-us')
+    public async contactUs(
+        @BodyParam('name') name: string,
+        @BodyParam('email', { required: true }) email: string,
+        @BodyParam('contactNumber', { required: true }) contactNumber: string,
+        @BodyParam('message') message: string,
+    ) {
+        return this.formSubmissionService.contactUs(name, message, email, contactNumber);
+    }
 }
