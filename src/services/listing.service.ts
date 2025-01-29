@@ -2,7 +2,7 @@ import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 
 import { v4 as uuidV4 } from "uuid"
-import { Company, Listing, User } from "../orm/entities";
+import { Company, CompanyDetail, Listing, User } from "../orm/entities";
 import { MongoRepository, ObjectLiteral } from "typeorm";
 import { CreateListingRequest, GetListingRequest } from "../models";
 import { StringUtil } from "../utils/string.util";
@@ -17,10 +17,13 @@ export class ListingService {
   @InjectRepository(Company)
   private companyModel: MongoRepository<Company>;
 
+  @InjectRepository(CompanyDetail)
+  private companyDetailModel: MongoRepository<CompanyDetail>;
+
   async create(params: CreateListingRequest, files: Express.Multer.File[], user: User) {
-    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary, 
+    const { title, from, to, includedPlaces, numberOfNights, mealsIncluded, travelInsurance, visa, hotels, airPortTransfers, itinerary,
       tags, startDate, endDate, basePrice, variablePrices, airTickets, tourGuide, basePriceSingle, overview, termsAndConditions,
-      customExclusions, customInclusions  
+      customExclusions, customInclusions
     } = params;
     const company = await this.companyModel.findOne({ where: { _id: user.companyId } });
     if (!company) throw new Error('Company not found');
@@ -35,7 +38,7 @@ export class ListingService {
     newListing.to = to;
     newListing.includedPlaces = includedPlaces;
     newListing.numberOfNights = Number(numberOfNights);
-    if(mealsIncluded?.length) {
+    if (mealsIncluded?.length) {
       newListing.mealsIncluded = mealsIncluded;
     } else {
       newListing.mealsIncluded = [];
@@ -76,18 +79,19 @@ export class ListingService {
     if (overview) {
       newListing.overview = overview;
     }
-    if(termsAndConditions?.length) {
+    if (termsAndConditions?.length) {
       newListing.termsAndConditions = termsAndConditions;
     }
-    if(customExclusions?.length) {
+    if (customExclusions?.length) {
       newListing.customExclusions = customExclusions;
     }
-    if(customInclusions?.length) {
+    if (customInclusions?.length) {
       newListing.customInclusions = customInclusions;
     }
     if (files && files.length > 0) {
       const fileIds = await Promise.all(files.map(async file => {
-        const fileName = StringUtil.getUploadFileName(file.originalname, company.name);
+        const formattedOriginalName = StringUtil.getFormattedFileName(file.originalname);
+        const fileName = StringUtil.getUploadFileName(formattedOriginalName, company.name);
         return UploadUtils.uploadFileToBucket(file, 'package-images', fileName)
       }));
       newListing.images = fileIds;
@@ -98,67 +102,6 @@ export class ListingService {
   async get(params: GetListingRequest) {
 
     const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage, company } = params;
-
-    // const query: FilterQuery<Listing> = {
-    //   // start date should be between the start and end date
-
-    //   startDate: {
-    //     $gte: new Date(startDate),
-    //     $lte: new Date(endDate)
-    //   },
-    //   // end date should be between the start and end date
-    //   endDate: {
-    //     $gte: new Date(startDate),
-    //     $lte: new Date(endDate)
-    //   }
-    // };
-
-    // if (from) {
-    //   const regex = new RegExp(from, 'i');
-    //   query['from'] = regex;
-    // }
-    // if (to) {
-    //   const regex = new RegExp(to, 'i');
-    //   query['to'] = regex;
-    // }
-    // query.isActive = true;
-    // if (listingType === 'inactive') {
-    //   query.isActive = false;
-    // }
-    // if (listingType === 'all') {
-    //   delete query.isActive;
-    // }
-    // if (isFeatured) {
-    //   query.isFeatured = isFeatured;
-    // }
-
-    // if (budgetMin) {
-    //   query.basePrice = {
-    //     $gte: budgetMin
-    //   };
-    // }
-
-    // if (budgetMax) {
-    //   query.basePrice = {
-    //     $lte: budgetMax
-    //   };
-    // }
-
-    // if (isFlightIncluded !== undefined) {
-    //   query.isFlightIncluded = isFlightIncluded;
-    // }
-
-    // if (maxNights) {
-    //   query.numberOfNights = {
-    //     $lte: maxNights
-    //   };
-    // }
-
-    // if (minNights) {
-    //   query.numberOfNights = {
-    //     $gte: minNights
-    //   };
-    // }
 
     const { listings, total } = await this.getFilteredAndSortedListings(
       limit,
@@ -178,9 +121,22 @@ export class ListingService {
       sortOrder,
       isTopPackage,
       company
-    )
+    );
+    const companyIds = listings.map(listing => listing.companyId);
+    const companyDetails = await this.companyDetailModel.find({ where: { companyId: { $in: companyIds } } });
+    const companyDetailsMap = companyDetails.reduce((acc: { [key: string]: string | undefined }, company) => {
+      acc[company.companyId.toString()] = company.logo
+      return acc;
+    }, {});
+    const formattedListings = listings.map(listing => {
+      return {
+        ...listing,
+        logo: companyDetailsMap[listing.companyId]
+      }
+    }
+    );
     return {
-      listings,
+      listings: formattedListings,
       total
     }
 
@@ -246,29 +202,38 @@ export class ListingService {
       matchStage.endDate = { $lte: bufferedEndDate }; // Apply buffered end date
     }
 
-    if (startDate && endDate) {
-      matchStage.$or = [
-        {  // Case 1: The package dates are entirely within the query range
-          startDate: { $gte: new Date(startDate) },   // Package starts after or equal to query's start date
-          endDate: { $lte: new Date(endDate) }        // Package ends before or equal to query's end date
-        },
-        {
-          startDate: { $lte: new Date(startDate) },
-          endDate: { $gte: new Date(endDate) }
-        }
-      ];
-    }
+    matchStage.$and = [{
+      _id: { $exists: true }
+    }]
 
+    if (startDate && endDate) {
+      const dateQuery = {
+        $or: [
+          {  // Case 1: The package dates are entirely within the query range
+            startDate: { $gte: new Date(startDate) },   // Package starts after or equal to query's start date
+            endDate: { $lte: new Date(endDate) }        // Package ends before or equal to query's end date
+          },
+          {
+            startDate: { $lte: new Date(startDate) },
+            endDate: { $gte: new Date(endDate) }
+          }
+        ]
+      }
+      matchStage.$and.push(dateQuery);
+    }
 
 
     if (isTopPackage !== undefined) matchStage.isTopPackage = isTopPackage;
 
     if (from) matchStage.from = { $regex: from, $options: 'i' };
     if (to) {
-      matchStage.$or = [
-        { to: { $regex: to, $options: 'i' } },
-        { includedPlaces: { $elemMatch: { $regex: to, $options: 'i' } } }
-      ];
+      const toMatchStage = {
+        $or: [
+          { to: { $regex: to, $options: 'i' } },
+          { includedPlaces: { $elemMatch: { $regex: to, $options: 'i' } } }
+        ]
+      };
+      matchStage.$and.push(toMatchStage);
     }
 
 
@@ -293,6 +258,8 @@ export class ListingService {
     const pipeline: ObjectLiteral[] = [
       { $match: matchStage },
     ];
+
+    console.log(matchStage, "matchStage-------------->");
 
     if (sortKey === 'price') {
       pipeline.push(

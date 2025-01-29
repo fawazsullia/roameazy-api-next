@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import { CreateSuperAdminRequest } from "../models/user/create-super-admin.request.model";
 import { UserType } from "../enums";
 import { ObjectId } from "mongodb";
+import { v4 as uuidV4 } from "uuid"
 
 @Service()
 export class UserService {
@@ -25,11 +26,11 @@ export class UserService {
   private companyDetailModel: MongoRepository<CompanyDetail>;
 
   // this is to create an admin user
-  async create(params: OnboardUserRequest, license: Express.Multer.File) {
+  async create(params: OnboardUserRequest, license: Express.Multer.File, logo?: Express.Multer.File) {
     const { name, email, companyName, companyEmail, companyAddress, companyPhone, companyDescription } = params;
     const user = await this.userModel.findOne({ where: { email } });
 
-    const existingCompany = await this.companyModel.findOne({ where: { name: companyEmail } });
+    const existingCompany = await this.companyModel.findOne({ where: { company: companyEmail } });
 
     if (existingCompany) {
       throw new Error('Company already exists');
@@ -46,6 +47,12 @@ export class UserService {
     try {
       const fileName = StringUtil.getUploadFileName(license.originalname, companyName);
       const uploadedUrl = await UploadUtils.uploadFileToBucket(license, 'licenses', fileName);
+      let uploadedLogoUrl = '';
+      if(logo) {
+        const logoFileName = StringUtil.getUploadFileName(logo.originalname, companyName);
+        const logoUrl = await UploadUtils.uploadFileToBucket(logo, 'logos', logoFileName);
+        uploadedLogoUrl = logoUrl;
+      }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const newuser = new User();
@@ -55,6 +62,7 @@ export class UserService {
       company.updatedAt = new Date();
       company.isVerified = true;
       company.plan = 'free';
+      company.token = uuidV4();
       const createdCompany = await this.companyModel.save(company);
 
 
@@ -67,6 +75,9 @@ export class UserService {
       companyDetail.companyId = createdCompany._id.toString();
       companyDetail.tradeLicense = uploadedUrl;
       companyDetail.description = companyDescription;
+      if(uploadedLogoUrl) {
+        companyDetail.logo = uploadedLogoUrl;
+      }
       await this.companyDetailModel.save(companyDetail);
 
       newuser.companyId = createdCompany._id;

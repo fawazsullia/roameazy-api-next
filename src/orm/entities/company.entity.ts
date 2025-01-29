@@ -21,6 +21,10 @@ export class Company {
     @Column({ default: false })
     isRoamEazy: boolean;
 
+
+    @Column()
+    token: string;
+
     @Column()
     createdAt: Date;
 

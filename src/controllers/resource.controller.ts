@@ -11,8 +11,8 @@ export class ResourceController {
     
     @Get('/')
     async getResourceById(
+        @Res() res: Response,
         @QueryParam('id') id: string,
-        @Res() res: Response
     ) {
         return this.resourceService.get(id, res);
     }

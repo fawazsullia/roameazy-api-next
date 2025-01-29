@@ -19,9 +19,10 @@ export class UserController {
   @Post('/onboard')
   async create(
     @Body() body: OnboardUserRequest,
-    @UploadedFile('license') license: Express.Multer.File
+    @UploadedFile('license') license: Express.Multer.File,
+    @UploadedFile('logo', { required: false }) logo?: Express.Multer.File
   ) {
-    const resposne = await this.userService.create(body, license);
+    const resposne = await this.userService.create(body, license, logo);
     // return new SuccessReponse()
     return resposne 
   }

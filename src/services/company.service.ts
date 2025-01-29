@@ -35,8 +35,12 @@ export class CompanyService {
     }
 
     public async getCompanies(getDetail?: boolean, limit?: number, offset?: number) {
-        // fetch all companies
-        const query: any = {};
+        // fetch all companies except roameazy
+        const query: any = {
+            where: {
+                $or: [{ isRoamEazy: { $exists: false } }, { isRoamEazy: false }]
+            }
+        };
         if (limit) {
             query.take = limit;
         }
@@ -69,6 +73,28 @@ export class CompanyService {
         return {
             companies: companiesArr,
             total: totalCompanies
+        }
+    }
+
+    public async getCompanyByToken(token: string) {
+        // fetch company by token
+        const company = await this.companyRepository.findOne({
+            where: {
+                token
+            }
+        });
+        if (!company) {
+            throw new Error('Company not found');
+        }
+        const companyDetails = await this.companyDetailRepository.findOne({
+            where: {
+                companyId: company._id.toString()
+            }
+        });
+        return {
+            id: company._id.toString(),
+            ...company,
+            details: companyDetails
         }
     }
 }

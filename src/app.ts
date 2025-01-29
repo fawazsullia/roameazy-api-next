@@ -70,11 +70,11 @@ const start = async () => {
   await initDatabase();
 
   const app = Express();
-  app.get("/api/resource", (req, res) => {
+  app.get("/api/resource", async (req, res) => {
     const resourceService = Container.get(ResourceService);
     // get id from request query params
     const id = req.query.id as string;
-    console.log('id', id);
+    if(!id) return res.status(404).send("Resource not found");
     return resourceService.get(id, res);
   })
 

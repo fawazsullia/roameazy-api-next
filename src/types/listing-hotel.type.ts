@@ -1,5 +1,5 @@
 export type ListingHotel = {
-    stars: number;
+    stars?: number;
     name?: string;
     nights: number;
     city: string;

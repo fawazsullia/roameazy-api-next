@@ -7,10 +7,13 @@ export class ResourceService {
 
     async get(id: string, res: Response) {
         console.log('id', id);
+        if (!id) {
+            return res.end();
+        }
         const stream = await UploadUtils.getFileFromBucket(id);
         stream.on('error', (err) => {
             console.error('Error reading from GCS:', err);
-            throw new Error('Error reading from GCS');
+            return res.end();
         });
         // res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Transfer-Encoding', 'chunked');

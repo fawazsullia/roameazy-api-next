@@ -24,4 +24,11 @@ export class CompanyController {
   ) {
     return this.companyService.getCompanies(getDetail, limit, offset);
   }
+
+  @Get("/token/:token")
+  public async getCompanyByToken(
+    @Param("token") token: string
+  ) {
+    return this.companyService.getCompanyByToken(token);
+  }
 }
