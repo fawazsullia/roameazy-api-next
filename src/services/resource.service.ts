@@ -1,6 +1,8 @@
 import { Service } from "typedi";
 import { UploadUtils } from "../utils/upload.util";
 import { Response } from "express";
+import { v4 as uuidV4 } from "uuid"
+import { StringUtil } from "../utils/string.util";
 
 @Service()
 export class ResourceService {
@@ -20,8 +22,11 @@ export class ResourceService {
         stream.pipe(res);
     }
 
-    public async create(file: Express.Multer.File, folder?: string) {
-        const fileName = file.originalname;
+    public async create(file: Express.Multer.File, folder?: string, companyName?: string) {
+        let fileName = uuidV4();
+        if(companyName) {
+            fileName = StringUtil.getUploadFileName(fileName, companyName);
+        }
         let newFolder = 'resources';
         if (folder) {
             newFolder = folder;

@@ -23,4 +23,10 @@ export class OnboardUserRequest {
     @IsString()
     companyDescription: string;
 
+    @IsString()
+    license?: string;
+
+    @IsString()
+    logo?: string;
+
 }

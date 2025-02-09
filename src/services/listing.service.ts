@@ -4,9 +4,10 @@ import { InjectRepository } from "typeorm-typedi-extensions";
 import { v4 as uuidV4 } from "uuid"
 import { Company, CompanyDetail, Listing, User } from "../orm/entities";
 import { MongoRepository, ObjectLiteral } from "typeorm";
-import { CreateListingRequest, GetListingRequest } from "../models";
+import { CreateListingRequest, GetListingRequest, UpdateListingRequest } from "../models";
 import { StringUtil } from "../utils/string.util";
 import { UploadUtils } from "../utils/upload.util";
+import { ObjectId } from "mongodb";
 
 @Service()
 export class ListingService {
@@ -101,7 +102,7 @@ export class ListingService {
 
   async get(params: GetListingRequest) {
 
-    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage, company } = params;
+    const { from, to, listingType, limit, offset, startDate, endDate, isFeatured, budgetMin, budgetMax, isFlightIncluded, maxNights, minNights, sortKey, sortOrder, isTopPackage, company, includeCompany } = params;
 
     const { listings, total } = await this.getFilteredAndSortedListings(
       limit,
@@ -128,13 +129,27 @@ export class ListingService {
       acc[company.companyId.toString()] = company.logo
       return acc;
     }, {});
-    const formattedListings = listings.map(listing => {
+    const formattedListings: (Listing & { logo: string | undefined; company?: Partial<Company> })[] = listings.map(listing => {
       return {
         ...listing,
-        logo: companyDetailsMap[listing.companyId]
+        logo: companyDetailsMap[listing.companyId],
+
       }
     }
     );
+    if (includeCompany) {
+      const companies = await this.companyModel.find({ where: { _id: { $in: companyIds.map((id) => new ObjectId(id)) } } });
+      const companiesMap = companies.reduce((acc: { [key: string]: Partial<Company> }, company) => {
+        acc[company._id.toString()] = {
+          name: company.name,
+          _id: company._id
+        }
+        return acc;
+      }, {});
+      formattedListings.forEach(listing => {
+        listing.company = companiesMap[listing.companyId]
+      });
+    }
     return {
       listings: formattedListings,
       total
@@ -304,7 +319,9 @@ export class ListingService {
     } else if (sortKey) {
       pipeline.push({
         $sort: { [sortKey]: sortOrder || 1 } as any
-      });
+      })
+    } else {
+      pipeline.unshift({ $sample: { size: limit || 10 } });
     }
 
     // Add $skip stage if offset is provided
@@ -338,5 +355,112 @@ export class ListingService {
         listingId
       }
     })
+  }
+
+  public async updateListing(listingId: string, updateListingInfo: UpdateListingRequest) {
+    const {
+      title,
+      isVerified,
+      includedPlaces,
+      mealsIncluded,
+      travelInsurance,
+      visa,
+      hotels,
+      airTickets,
+      tourGuide,
+      airPortTransfers,
+      itinerary,
+      tags,
+      startDate,
+      endDate,
+      isActive,
+      isFeatured,
+      basePrice,
+      basePriceSingle,
+      images,
+      overview,
+      isTopPackage,
+      termsAndConditions,
+      customInclusions,
+      customExclusions,
+    } = updateListingInfo;
+
+    const listing = await this.listingModel.findOne({ where: { listingId } });
+    if (!listing) {
+      throw new Error('Listing not found');
+    }
+    if (title) {
+      listing.title = title;
+    }
+    if (isVerified !== undefined) {
+      listing.isVerified = isVerified;
+    }
+    if (includedPlaces) {
+      listing.includedPlaces = includedPlaces;
+    }
+    if (mealsIncluded) {
+      listing.mealsIncluded = mealsIncluded;
+    }
+    if (travelInsurance !== undefined) {
+      listing.travelInsurance = travelInsurance;
+    }
+    if (visa !== undefined) {
+      listing.visa = visa;
+    }
+    if (hotels) {
+      listing.hotels = hotels;
+    }
+    if (airTickets !== undefined) {
+      listing.airTickets = airTickets;
+    }
+    if (tourGuide !== undefined) {
+      listing.tourGuide = tourGuide;
+    }
+    if (airPortTransfers) {
+      listing.airPortTransfers = airPortTransfers;
+    }
+    if (itinerary) {
+      listing.itinerary = itinerary;
+    }
+    if (tags) {
+      listing.tags = tags;
+    }
+    if (startDate) {
+      listing.startDate = new Date(startDate);
+    }
+    if (endDate) {
+      listing.endDate = new Date(endDate);
+    }
+    if (isActive !== undefined) {
+      listing.isActive = isActive;
+    }
+    if (isFeatured !== undefined) {
+      listing.isFeatured = isFeatured;
+    }
+    if (basePrice) {
+      listing.basePrice = basePrice;
+    }
+    if (basePriceSingle) {
+      listing.basePriceSingle = basePriceSingle;
+    }
+    if (images) {
+      listing.images = images;
+    }
+    if (overview) {
+      listing.overview = overview;
+    }
+    if (isTopPackage !== undefined) {
+      listing.isTopPackage = isTopPackage;
+    }
+    if (termsAndConditions) {
+      listing.termsAndConditions = termsAndConditions;
+    }
+    if (customInclusions) {
+      listing.customInclusions = customInclusions;
+    }
+    if (customExclusions) {
+      listing.customExclusions = customExclusions;
+    }
+    await this.listingModel.save(listing);
   }
 }

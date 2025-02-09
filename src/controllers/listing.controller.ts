@@ -1,7 +1,7 @@
-import { Body, CurrentUser, Get, JsonController, Param, Post, UploadedFiles, UseBefore } from "routing-controllers";
+import { Body, CurrentUser, Get, JsonController, Param, Patch, Post, UploadedFiles, UseBefore } from "routing-controllers";
 import { Inject } from "typedi";
 import { ListingService } from "../services/listing.service";
-import { CreateListingRequest, GetListingRequest, SuccessReponse } from "../models";
+import { CreateListingRequest, GetListingRequest, SuccessReponse, UpdateListingRequest } from "../models";
 import { User } from "../orm/entities";
 import { AllowSpecifiedUserType } from "../utils/allow-specified-user-type.util";
 import { UserType } from "../enums";
@@ -38,5 +38,13 @@ export class ListingController {
         @Param('listingId') listingId: string
     ) {
         return this.listingService.getListingById(listingId);
+    }
+
+    @Patch('/:listingId')
+    public async updateListing(
+        @Param('listingId') listingId: string,
+        @Body() body: UpdateListingRequest
+    ){
+        return this.listingService.updateListing(listingId, body);
     }
 }

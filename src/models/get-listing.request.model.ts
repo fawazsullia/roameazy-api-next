@@ -68,4 +68,8 @@ export class GetListingRequest {
     @IsString()
     @IsOptional()
     company?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    includeCompany?: boolean;
 }

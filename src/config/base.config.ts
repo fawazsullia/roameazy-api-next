@@ -4,7 +4,7 @@ export class BaseConfig {
   public JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ? Number(process.env.JWT_EXPIRES_IN) : 60 * 24 * 10;
   public port = process.env.PORT || 9005;
   public db = {
-    uri: process.env.MONGO_URI || 'mongodb+srv://roameazyadmin:yhYsxvGTLMjUN3P1@roam-eazy-uat.ftltt.mongodb.net/roam-eazy-prod-1?ssl=true&retryWrites=true&w=majority',
+    uri: process.env.MONGO_URI || 'mongodb+srv://roameazyadmin:yhYsxvGTLMjUN3P1@roam-eazy-uat.ftltt.mongodb.net/roam-eazy-uat?ssl=true&retryWrites=true&w=majority',
   };
   public saltRounds = process.env.SALT_ROUNDS ? Number(process.env.SALT_ROUNDS) : 10;
   public authCookieMaxAge = process.env.AUTH_COOKIE_MAX_AGE
